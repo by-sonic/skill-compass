@@ -11,7 +11,7 @@
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-hook-EAEEF6?style=flat-square)](https://claude.com/claude-code)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-57E0C7?style=flat-square)](#)
 
-**[Сайт](https://sonic.github.io/skill-compass/ru.html)** · **[Установка](#установка)** · **[Как работает](#как-работает)** · **[Настройка](#настройка)**
+**[Сайт](https://by-sonic.github.io/skill-compass/ru.html)** · **[Установка](#установка)** · **[Как работает](#как-работает)** · **[Настройка](#настройка)**
 
 **[English](README.md)** · **Русский**
 
@@ -53,7 +53,7 @@
 Нужны **Node.js** и **Claude Code**.
 
 ```bash
-git clone https://github.com/sonic/skill-compass
+git clone https://github.com/by-sonic/skill-compass
 node skill-compass/install.js
 ```
 

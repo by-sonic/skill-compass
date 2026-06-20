@@ -11,7 +11,7 @@ A [Claude Code](https://claude.com/claude-code) hook that reads your repo, works
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-hook-EAEEF6?style=flat-square)](https://claude.com/claude-code)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-57E0C7?style=flat-square)](#)
 
-**[Website](https://sonic.github.io/skill-compass/)** · **[Install](#install)** · **[How it works](#how-it-works)** · **[Configure](#configure)**
+**[Website](https://by-sonic.github.io/skill-compass/)** · **[Install](#install)** · **[How it works](#how-it-works)** · **[Configure](#configure)**
 
 **English** · **[Русский](README.ru.md)**
 
@@ -53,7 +53,7 @@ Plus **16 language stacks** (Rust, Go, Python, TypeScript, Next.js, React, Vue, 
 Needs **Node.js** and **Claude Code**.
 
 ```bash
-git clone https://github.com/sonic/skill-compass
+git clone https://github.com/by-sonic/skill-compass
 node skill-compass/install.js
 ```
 
