@@ -77,6 +77,14 @@ Copy `compass.js` and `directions.json` to `~/.claude/skill-compass/`, then add 
 ```
 </details>
 
+## Install as a skill
+
+skill-compass also ships as an [Agent Skill](https://github.com/by-sonic/skill-compass/tree/master/skill/skill-compass) so Claude can install and operate the hook for you on request. Point Claude Code at [`skill/skill-compass/`](skill/skill-compass/) (copy it into your project's `.claude/skills/` or your global `~/.claude/skills/`). Then just ask:
+
+> "Install skill-compass" · "show my directions.json" · "add a mobile bearing" · "run the compass self-test"
+
+The skill knows how to run `install.js`, edit `directions.json`, and verify with `--self-test`.
+
 ## Configure
 
 Open [`directions.json`](directions.json). Add a stack or a direction by appending one object.

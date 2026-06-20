@@ -77,6 +77,14 @@ node skill-compass/install.js
 ```
 </details>
 
+## Установка как скилл
+
+skill-compass поставляется и как [Agent Skill](https://github.com/by-sonic/skill-compass/tree/master/skill/skill-compass) — тогда Claude сам ставит и обслуживает хук по твоей просьбе. Укажи Claude Code на [`skill/skill-compass/`](skill/skill-compass/) (скопируй в `.claude/skills/` проекта или в глобальный `~/.claude/skills/`). Дальше просто проси:
+
+> «Поставь skill-compass» · «покажи directions.json» · «добавь азимут mobile» · «прогони self-test компаса»
+
+Скилл умеет запускать `install.js`, править `directions.json` и проверять через `--self-test`.
+
 ## Настройка
 
 Открой [`directions.json`](directions.json). Новый стек или направление добавляется одним объектом.
