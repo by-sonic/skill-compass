@@ -30,7 +30,7 @@ A loaded Claude Code has a huge skill library — design, API, database, securit
 **Match → Inject**, in single-digit milliseconds. It reads three signals:
 
 1. **Project files** — the project root one level deep: dependency manifests, folders, file extensions. Mapped to *stacks* (Rust, Next.js, Django…) and cross-cutting *directions* (UI, API, DB, auth, LLM, infra).
-2. **Your prompt** — matches project/topic *keywords* in what you type, so it fires even from a junk-drawer cwd (a Desktop full of projects). Say *"find the xray folder and fix it"* and it routes to the right skills before a file is opened.
+2. **Your prompt** — matches project/topic *keywords* in what you type, so it fires even from a junk-drawer cwd (a Desktop full of projects). Say *"find the clickhouse migration and fix it"* and it routes to the right skills before a file is opened.
 3. **What the AI finds mid-turn** — a `PostToolUse` hook watches `Bash`/`Grep`/`Glob`/`Read`/`Task` results; the moment a tool surfaces a known keyword (a path, a dependency, a match line) it injects the matching skills right next to that tool result.
 
 Matched skills are injected as a compact note — shown once per signal-set per session, re-shown when the detected set changes. With no manifest, no prompt keyword and no tool finding, the compass stays silent instead of guessing.
@@ -46,7 +46,7 @@ Matched skills are injected as a compact note — shown once per signal-set per 
 | **LLM** | `anthropic`, `openai`, `langchain` | `claude-api`, `agent-harness-construction` |
 | **INFRA** | `Dockerfile`, `compose.yml`, `k8s/` | `docker-patterns`, `deployment-patterns` |
 
-Plus **16 language stacks** (Rust, Go, Python, TypeScript, Next.js, React, Vue, Java, Spring Boot, Kotlin, Swift, Dart/Flutter, PHP/Laravel, C#, C/C++) and a **`keywords`** block that routes by project/topic name (SonicDPI, Xray/VPN, SEO, a11y, research, video, Claude API, homelab, …) straight from your prompt or a mid-turn tool finding. Every row lives in [`directions.json`](directions.json).
+Plus **16 language stacks** (Rust, Go, Python, TypeScript, Next.js, React, Vue, Java, Spring Boot, Kotlin, Swift, Dart/Flutter, PHP/Laravel, C#, C/C++) and a **`keywords`** block that routes by project/topic name (SEO, a11y, research, video, Claude API, homelab, …) straight from your prompt or a mid-turn tool finding. Every row lives in [`directions.json`](directions.json).
 
 ## Install
 

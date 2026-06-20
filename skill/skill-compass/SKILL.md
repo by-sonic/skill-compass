@@ -22,8 +22,8 @@ description: >-
 skills/agents from three signals: the working directory's composition (languages,
 frameworks, config files), project/topic keywords in your prompt, and keywords the
 AI surfaces mid-turn (a `Bash`/`Grep`/`Glob`/`Read`/`Task` result). E.g. UI files →
-frontend-design, API routes → api-design, a `Dockerfile` → infra, "find the xray
-folder" → the xray skills. It nudges the model toward the right skill instead of
+frontend-design, API routes → api-design, a `Dockerfile` → infra, "find the
+clickhouse migration" → the database skills. It nudges the model toward the right skill instead of
 relying on memory.
 
 ## Layout (this repo)

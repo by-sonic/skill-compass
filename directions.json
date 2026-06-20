@@ -5,7 +5,7 @@
   "_doc": {
     "stacks": "Language/framework level. indicators = filenames (glob *) at depth<=2; optional 'contains' = substring that must appear in that file.",
     "directions": "Cross-cutting concerns layered on top of stacks. deps = dependency names (matched in package.json/requirements/pyproject/Cargo.toml/go.mod text); paths = folder/file names present at depth<=2; ext = file extensions present at depth<=2. ANY match triggers the direction.",
-    "keywords": "Prompt-driven routing. match = words/phrases to look for in the user's prompt text (case-insensitive; single words match on word boundaries, phrases match as substrings). Lets compass fire even when cwd is a junk-drawer (Desktop) with no root manifest — e.g. 'найди папку SonicDPI и почини'. Add a project/topic by appending an object.",
+    "keywords": "Prompt-driven routing. match = words/phrases to look for in the user's prompt text (case-insensitive; single words match on word boundaries, phrases match as substrings). Lets compass fire even when cwd is a junk-drawer (Desktop) with no root manifest — e.g. 'почини sitemap для SEO'. Add a project/topic by appending an object.",
     "always": "Directions emitted for every project regardless of detection."
   },
 
@@ -80,8 +80,6 @@
   ],
 
   "keywords": [
-    { "id": "sonicdpi",   "name": "SonicDPI (DPI-bypass, Rust)",   "match": ["sonicdpi", "windivert", "nfqueue", "tspu", "zapret", "byedpi", "goodbyedpi", "clienthello", "dpi-bypass", "обход блокировок", "обход дпи", "discord update", "ютуб буферит", "youtube буферит"], "skills": ["sonicdpi-debug"] },
-    { "id": "xray",       "name": "Xray / VPN / proxy core",       "match": ["xray", "v2ray", "vless", "vmess", "shadowsocks", "trojan", "reality", "rosevpn", "прокси-ядро"], "skills": ["ecc:deployment-patterns", "ecc:security-review", "ecc:docker-patterns"] },
     { "id": "seo",        "name": "SEO",                            "match": ["seo", "сео", "sitemap", "robots.txt", "schema.org", "meta-теги", "поисковая выдача", "core web vitals", "индексаци"], "skills": ["ecc:seo"] },
     { "id": "a11y",       "name": "Accessibility",                  "match": ["accessibility", "a11y", "wcag", "доступность", "screen reader", "скринридер", "aria"], "skills": ["ecc:accessibility"] },
     { "id": "research",   "name": "Deep research",                  "match": ["deep research", "ресёрч", "ресерч", "исследовать тему", "глубокое исследование", "собери источники"], "skills": ["deep-research", "ecc:market-research"] },
