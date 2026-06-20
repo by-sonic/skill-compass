@@ -68,24 +68,46 @@ function detect(root) {
   return { stacks, directions, always: CFG.always || [] };
 }
 
-function render({ stacks, directions, always }) {
-  // No root-level manifest => cwd is not a single project (e.g. a folder of projects). Stay silent.
-  if (!stacks.length) return '';
+// Prompt-driven routing: match keywords in the user's prompt so compass fires even
+// when cwd is a junk-drawer (Desktop) with no root manifest. Single-word matches use
+// unicode word boundaries (no false hit on substrings); phrases match as substrings.
+function keywordHit(term, prompt) {
+  const t = term.toLowerCase();
+  if (/\s/.test(t)) return prompt.includes(t);
+  const esc = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  try { return new RegExp('(^|[^\\p{L}\\p{N}])' + esc + '([^\\p{L}\\p{N}]|$)', 'iu').test(prompt); }
+  catch { return prompt.includes(t); }
+}
+function detectKeywords(prompt) {
+  const p = (prompt || '').toLowerCase();
+  if (!p) return [];
+  return (CFG.keywords || []).filter(k => (k.match || []).some(m => keywordHit(m, p)));
+}
+
+function render({ stacks, directions, always }, keywords = []) {
+  // Fire if either a root manifest was found OR the prompt matched a project/topic keyword.
+  // No manifest and no keyword => cwd is a junk-drawer with no signal. Stay silent.
+  if (!stacks.length && !keywords.length) return '';
   const lines = [];
-  for (const st of stacks) lines.push(`- ${st.name}: ${st.skills.join(', ')}`);
-  for (const d of directions) lines.push(`- ${d.name}: ${d.skills.join(', ')}`);
+  for (const k of keywords) lines.push(`- ${k.name} (по тексту задачи): ${k.skills.join(', ')}`);
+  // stacks/directions describe the scanned cwd. In a junk-drawer (no root manifest) they
+  // reflect sibling folders, not the target project — emit them only when a real root exists.
+  if (stacks.length) {
+    for (const st of stacks) lines.push(`- ${st.name}: ${st.skills.join(', ')}`);
+    for (const d of directions) lines.push(`- ${d.name}: ${d.skills.join(', ')}`);
+  }
   for (const a of always) lines.push(`- ${a.name}: ${a.skills.join(', ')}`);
   if (!lines.length) return '';
   return [
-    'skill-compass — направления для этого проекта (по составу файлов/зависимостей).',
-    'Релевантные скиллы для текущей задачи (process-скиллы вперёд implementation, §0):',
+    'skill-compass — направления для текущей задачи (по составу проекта и тексту запроса).',
+    'Релевантные скиллы (process-скиллы вперёд implementation, §0):',
     ...lines,
     'Инвокай через Skill tool ДО написания кода, если задача затрагивает эти области.'
   ].join('\n');
 }
 
-function signature(d) {
-  const skills = [...d.stacks, ...d.directions, ...d.always].flatMap(x => x.skills).sort();
+function signature(d, keywords = []) {
+  const skills = [...d.stacks, ...d.directions, ...d.always, ...keywords].flatMap(x => x.skills).sort();
   return crypto.createHash('sha1').update(skills.join('|')).digest('hex');
 }
 
@@ -94,10 +116,24 @@ function markerPath(root, sessionId) {
   return path.join(os.tmpdir(), 'skill-compass', key + '.txt');
 }
 
-function emit(text) {
+function emit(text, eventName = 'UserPromptSubmit') {
   process.stdout.write(JSON.stringify({
-    hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: text }
+    hookSpecificOutput: { hookEventName: eventName, additionalContext: text }
   }));
+}
+
+// PostToolUse: flatten tool name + args + result into one searchable string so keyword
+// routing can fire on what the AI just discovered (e.g. a Glob/Grep/Read surfacing xray).
+function toolText(input) {
+  const parts = [];
+  if (input.tool_name) parts.push(String(input.tool_name));
+  try { parts.push(JSON.stringify(input.tool_input || {})); } catch {}
+  const r = input.tool_response;
+  if (typeof r === 'string') parts.push(r);
+  else if (r && typeof r === 'object') parts.push(typeof r.text === 'string' ? r.text : JSON.stringify(r));
+  // ponytail: cap at 50k chars — bounds regex cost on huge file reads; truncation only
+  // risks missing a keyword near the very end of a giant output, which is acceptable.
+  return parts.join('\n').slice(0, 50000);
 }
 
 // ---- self-test ----
@@ -158,7 +194,25 @@ function selfTest() {
   // junk-drawer: tmp itself contains child projects but has NO root manifest -> must stay silent
   const dtmp = detect(tmp);
   check('junk drawer: no stacks at root', dtmp.stacks.length === 0);
-  check('junk drawer: render empty (gated on stacks)', render(dtmp) === '');
+  check('junk drawer: render empty when no prompt keyword', render(dtmp) === '');
+
+  // prompt-driven keyword routing (junk-drawer Desktop case)
+  check('keyword: sonicdpi from prompt', detectKeywords('найди папку SonicDPI на столе и почини конфиг').some(k => k.id === 'sonicdpi'));
+  check('keyword: xray from prompt', detectKeywords('зайди в папку xray и проверь vless').some(k => k.id === 'xray'));
+  check('keyword: empty prompt -> none', detectKeywords('').length === 0);
+  check('keyword: no false-positive substring (redis in redistribute)', !keywordHit('redis', 'redistribute the load'));
+  check('keyword: cyrillic word boundary (сео)', keywordHit('сео', 'нужно сео для лендинга'));
+  check('keyword: junk-drawer fires when keyword matches', render(dtmp, detectKeywords('почини sonicdpi')) !== '');
+  check('keyword: junk-drawer hides directions (no project root)', !/UI \/ Frontend|Database|Infra/.test(render(dtmp, detectKeywords('почини sonicdpi'))));
+  check('keyword: signature changes with keywords', signature(dtmp) !== signature(dtmp, detectKeywords('почини sonicdpi')));
+
+  // PostToolUse: keyword routing off the tool result the AI just got
+  const globResp = { tool_name: 'Glob', tool_input: { pattern: '**/*xray*' }, tool_response: { type: 'text', text: 'C:/Users/Sonic/Desktop/RoseVPN/xray/config.json' } };
+  check('post: xray from tool_response path', detectKeywords(toolText(globResp)).some(k => k.id === 'xray'));
+  const bashResp = { tool_name: 'Bash', tool_input: { command: 'grep -ri windivert .' }, tool_response: 'src/windivert.rs: hooked' };
+  check('post: sonicdpi from bash result (string response)', detectKeywords(toolText(bashResp)).some(k => k.id === 'sonicdpi'));
+  check('post: no keyword -> empty text', detectKeywords(toolText({ tool_name: 'Read', tool_input: { file_path: 'a.txt' }, tool_response: { type: 'text', text: 'hello world' } })).length === 0);
+  check('post: toolText caps at 50k', toolText({ tool_response: 'x'.repeat(60000) }).length === 50000);
 
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');
@@ -174,19 +228,30 @@ function main() {
   try { input = JSON.parse((fs.readFileSync(0, 'utf8') || '{}').replace(/^﻿/, '')); } catch {}
   const root = input.cwd || process.env.CLAUDE_PROJECT_DIR || process.cwd();
   const force = process.argv.includes('--force');
+  const isPost = process.argv.includes('--post') || input.hook_event_name === 'PostToolUse';
 
-  const d = detect(root);
-  const text = render(d);
+  let d, kw, text, ev;
+  if (isPost) {
+    // Mid-turn: route on keywords surfaced by the tool the AI just ran (no project scan).
+    ev = 'PostToolUse';
+    d = { stacks: [], directions: [], always: CFG.always || [] };
+    kw = detectKeywords(toolText(input));
+  } else {
+    ev = 'UserPromptSubmit';
+    d = detect(root);
+    kw = detectKeywords(input.prompt);
+  }
+  text = render(d, kw);
   if (!text) return;
 
   const mp = markerPath(root, input.session_id);
-  const sig = signature(d);
+  const sig = signature(d, kw);
   if (!force) {
     try { if (fs.readFileSync(mp, 'utf8') === sig) return; } catch {}
   }
   try { fs.mkdirSync(path.dirname(mp), { recursive: true }); fs.writeFileSync(mp, sig); } catch {}
 
-  emit(text);
+  emit(text, ev);
 }
 
 main();

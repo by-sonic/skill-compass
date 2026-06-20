@@ -27,13 +27,13 @@ A loaded Claude Code has a huge skill library — design, API, database, securit
 
 ## How it works
 
-**Scan → Match → Inject**, in single-digit milliseconds.
+**Match → Inject**, in single-digit milliseconds. It reads three signals:
 
-1. **Scan** — reads the project root one level deep: dependency manifests, folders, file extensions. No deep tree walks, no network.
-2. **Match** — maps what it found to *stacks* (Rust, Next.js, Django…) and cross-cutting *directions* (UI, API, DB, auth, LLM, infra) from one editable config.
-3. **Inject** — adds a compact note to the prompt naming the skills to load. Shown once per project per session; re-shown only when the project changes.
+1. **Project files** — the project root one level deep: dependency manifests, folders, file extensions. Mapped to *stacks* (Rust, Next.js, Django…) and cross-cutting *directions* (UI, API, DB, auth, LLM, infra).
+2. **Your prompt** — matches project/topic *keywords* in what you type, so it fires even from a junk-drawer cwd (a Desktop full of projects). Say *"find the xray folder and fix it"* and it routes to the right skills before a file is opened.
+3. **What the AI finds mid-turn** — a `PostToolUse` hook watches `Bash`/`Grep`/`Glob`/`Read`/`Task` results; the moment a tool surfaces a known keyword (a path, a dependency, a match line) it injects the matching skills right next to that tool result.
 
-If there's no manifest at the root, the cwd isn't a single project (it's a folder *of* projects) and the compass stays silent instead of guessing.
+Matched skills are injected as a compact note — shown once per signal-set per session, re-shown when the detected set changes. With no manifest, no prompt keyword and no tool finding, the compass stays silent instead of guessing.
 
 ## The bearings it reads
 
@@ -46,7 +46,7 @@ If there's no manifest at the root, the cwd isn't a single project (it's a folde
 | **LLM** | `anthropic`, `openai`, `langchain` | `claude-api`, `agent-harness-construction` |
 | **INFRA** | `Dockerfile`, `compose.yml`, `k8s/` | `docker-patterns`, `deployment-patterns` |
 
-Plus **16 language stacks** (Rust, Go, Python, TypeScript, Next.js, React, Vue, Java, Spring Boot, Kotlin, Swift, Dart/Flutter, PHP/Laravel, C#, C/C++). Every row lives in [`directions.json`](directions.json).
+Plus **16 language stacks** (Rust, Go, Python, TypeScript, Next.js, React, Vue, Java, Spring Boot, Kotlin, Swift, Dart/Flutter, PHP/Laravel, C#, C/C++) and a **`keywords`** block that routes by project/topic name (SonicDPI, Xray/VPN, SEO, a11y, research, video, Claude API, homelab, …) straight from your prompt or a mid-turn tool finding. Every row lives in [`directions.json`](directions.json).
 
 ## Install
 
@@ -57,7 +57,7 @@ git clone https://github.com/by-sonic/skill-compass
 node skill-compass/install.js
 ```
 
-The installer copies two files to `~/.claude/skill-compass/` and registers one `UserPromptSubmit` hook. **Restart Claude Code** to load it.
+The installer copies two files to `~/.claude/skill-compass/` and registers two hooks — `UserPromptSubmit` (prompt + project) and `PostToolUse` (mid-turn tool findings). **Restart Claude Code** to load them.
 
 <details>
 <summary>Manual install</summary>
@@ -70,6 +70,11 @@ Copy `compass.js` and `directions.json` to `~/.claude/skill-compass/`, then add 
     "UserPromptSubmit": [
       { "matcher": "", "hooks": [
         { "type": "command", "command": "node \"~/.claude/skill-compass/compass.js\"" }
+      ]}
+    ],
+    "PostToolUse": [
+      { "matcher": "Bash|Grep|Glob|Read|Task", "hooks": [
+        { "type": "command", "command": "node \"~/.claude/skill-compass/compass.js\" --post" }
       ]}
     ]
   }

@@ -27,13 +27,13 @@
 
 ## Как работает
 
-**Scan → Match → Inject**, за единицы миллисекунд.
+**Match → Inject**, за единицы миллисекунд. Читает три сигнала:
 
-1. **Scan** — читает корень проекта на один уровень вглубь: манифесты зависимостей, папки, расширения. Без глубоких обходов дерева и сети.
-2. **Match** — сопоставляет найденное со *стеками* (Rust, Next.js, Django…) и сквозными *направлениями* (UI, API, БД, auth, LLM, инфра) из одного редактируемого конфига.
-3. **Inject** — добавляет в промт компактную заметку с именами скиллов. Показывается раз на проект за сессию; повторно — только если состав изменился.
+1. **Файлы проекта** — корень на один уровень вглубь: манифесты зависимостей, папки, расширения. Сопоставляются со *стеками* (Rust, Next.js, Django…) и сквозными *направлениями* (UI, API, БД, auth, LLM, инфра).
+2. **Твой промт** — ловит *ключевые слова* проекта/темы в тексте запроса, поэтому срабатывает даже из «junk-drawer» cwd (рабочий стол с кучей проектов). Пишешь *«найди папку xray и почини»* — и он направляет на нужные скиллы ещё до открытия файлов.
+3. **Что ИИ находит во время работы** — хук `PostToolUse` смотрит результаты `Bash`/`Grep`/`Glob`/`Read`/`Task`; как только инструмент выдаёт известное ключевое слово (путь, зависимость, строку совпадения) — вбрасывает подходящие скиллы прямо рядом с этим результатом.
 
-Если в корне нет манифеста — значит cwd не отдельный проект (это папка *с* проектами), и компас молчит, а не угадывает.
+Найденные скиллы вставляются компактной заметкой — раз на набор-сигнал за сессию, повторно при смене состава. Если нет ни манифеста, ни ключевого слова в промте, ни находки инструментом — компас молчит, а не угадывает.
 
 ## Азимуты, которые он читает
 
@@ -46,7 +46,7 @@
 | **LLM** | `anthropic`, `openai`, `langchain` | `claude-api`, `agent-harness-construction` |
 | **INFRA** | `Dockerfile`, `compose.yml`, `k8s/` | `docker-patterns`, `deployment-patterns` |
 
-Плюс **16 языковых стеков** (Rust, Go, Python, TypeScript, Next.js, React, Vue, Java, Spring Boot, Kotlin, Swift, Dart/Flutter, PHP/Laravel, C#, C/C++). Каждая строка живёт в [`directions.json`](directions.json).
+Плюс **16 языковых стеков** (Rust, Go, Python, TypeScript, Next.js, React, Vue, Java, Spring Boot, Kotlin, Swift, Dart/Flutter, PHP/Laravel, C#, C/C++) и блок **`keywords`**, который маршрутизирует по имени проекта/темы (SonicDPI, Xray/VPN, SEO, a11y, research, video, Claude API, homelab, …) прямо из твоего промта или находки инструментом. Каждая строка живёт в [`directions.json`](directions.json).
 
 ## Установка
 
@@ -57,7 +57,7 @@ git clone https://github.com/by-sonic/skill-compass
 node skill-compass/install.js
 ```
 
-Установщик копирует два файла в `~/.claude/skill-compass/` и регистрирует один хук `UserPromptSubmit`. **Перезапусти Claude Code**, чтобы он загрузился.
+Установщик копирует два файла в `~/.claude/skill-compass/` и регистрирует два хука — `UserPromptSubmit` (промт + проект) и `PostToolUse` (находки инструментов во время работы). **Перезапусти Claude Code**, чтобы они загрузились.
 
 <details>
 <summary>Установка вручную</summary>
@@ -70,6 +70,11 @@ node skill-compass/install.js
     "UserPromptSubmit": [
       { "matcher": "", "hooks": [
         { "type": "command", "command": "node \"~/.claude/skill-compass/compass.js\"" }
+      ]}
+    ],
+    "PostToolUse": [
+      { "matcher": "Bash|Grep|Glob|Read|Task", "hooks": [
+        { "type": "command", "command": "node \"~/.claude/skill-compass/compass.js\" --post" }
       ]}
     ]
   }

@@ -5,6 +5,7 @@
   "_doc": {
     "stacks": "Language/framework level. indicators = filenames (glob *) at depth<=2; optional 'contains' = substring that must appear in that file.",
     "directions": "Cross-cutting concerns layered on top of stacks. deps = dependency names (matched in package.json/requirements/pyproject/Cargo.toml/go.mod text); paths = folder/file names present at depth<=2; ext = file extensions present at depth<=2. ANY match triggers the direction.",
+    "keywords": "Prompt-driven routing. match = words/phrases to look for in the user's prompt text (case-insensitive; single words match on word boundaries, phrases match as substrings). Lets compass fire even when cwd is a junk-drawer (Desktop) with no root manifest — e.g. 'найди папку SonicDPI и почини'. Add a project/topic by appending an object.",
     "always": "Directions emitted for every project regardless of detection."
   },
 
@@ -76,6 +77,27 @@
       "ext": [],
       "skills": ["ecc:docker-patterns", "ecc:deployment-patterns"]
     }
+  ],
+
+  "keywords": [
+    { "id": "sonicdpi",   "name": "SonicDPI (DPI-bypass, Rust)",   "match": ["sonicdpi", "windivert", "nfqueue", "tspu", "zapret", "byedpi", "goodbyedpi", "clienthello", "dpi-bypass", "обход блокировок", "обход дпи", "discord update", "ютуб буферит", "youtube буферит"], "skills": ["sonicdpi-debug"] },
+    { "id": "xray",       "name": "Xray / VPN / proxy core",       "match": ["xray", "v2ray", "vless", "vmess", "shadowsocks", "trojan", "reality", "rosevpn", "прокси-ядро"], "skills": ["ecc:deployment-patterns", "ecc:security-review", "ecc:docker-patterns"] },
+    { "id": "seo",        "name": "SEO",                            "match": ["seo", "сео", "sitemap", "robots.txt", "schema.org", "meta-теги", "поисковая выдача", "core web vitals", "индексаци"], "skills": ["ecc:seo"] },
+    { "id": "a11y",       "name": "Accessibility",                  "match": ["accessibility", "a11y", "wcag", "доступность", "screen reader", "скринридер", "aria"], "skills": ["ecc:accessibility"] },
+    { "id": "research",   "name": "Deep research",                  "match": ["deep research", "ресёрч", "ресерч", "исследовать тему", "глубокое исследование", "собери источники"], "skills": ["deep-research", "ecc:market-research"] },
+    { "id": "humanize",   "name": "Humanize text",                  "match": ["humanize", "очеловечь", "убери ai", "звучит как нейросеть", "сделай текст живым"], "skills": ["humanizer"] },
+    { "id": "video",      "name": "Video / motion generation",      "match": ["manim", "remotion", "сделай видео", "видеоролик", "video editing", "монтаж видео"], "skills": ["ecc:manim-video", "ecc:remotion-video-creation", "ecc:video-editing"] },
+    { "id": "genmedia",   "name": "AI media generation (fal.ai)",   "match": ["fal.ai", "fal-ai", "сгенерируй картинку", "сгенерируй изображение", "text-to-image", "text-to-video", "nano banana"], "skills": ["ecc:fal-ai-media"] },
+    { "id": "claude-api", "name": "Claude API / Anthropic SDK",     "match": ["claude api", "anthropic", "claude-opus", "claude-sonnet", "claude-haiku", "claude-fable", "@anthropic-ai", "token counting", "prompt caching"], "skills": ["claude-api"] },
+    { "id": "agents",     "name": "LLM agents / harness",           "match": ["агентский харнесс", "agent harness", "action space", "tool definition", "мульти-агент", "multi-agent", "autonomous loop", "агентское приложение"], "skills": ["ecc:agent-harness-construction", "ecc:agent-architecture-audit"] },
+    { "id": "homelab",    "name": "Homelab network",                "match": ["homelab", "домашняя сеть", "vlan", "wireguard", "pihole", "pi-hole", "сегментаци сети"], "skills": ["ecc:homelab-network-setup", "ecc:homelab-wireguard-vpn", "ecc:homelab-vlan-segmentation"] },
+    { "id": "netgear",    "name": "Network configs (Cisco/BGP)",    "match": ["cisco", "ios-config", "bgp", "ospf", "конфиг роутера", "конфиг коммутатора", "switch config", "router config"], "skills": ["ecc:cisco-ios-patterns", "ecc:network-config-validation", "ecc:network-bgp-diagnostics"] },
+    { "id": "healthcare", "name": "Healthcare / HIPAA",             "match": ["hipaa", "phi", " ehr", " emr", "медицинск", "пациент", "clinical", "cdss"], "skills": ["ecc:hipaa-compliance", "ecc:healthcare-emr-patterns"] },
+    { "id": "defi",       "name": "DeFi / on-chain security",       "match": ["defi", "amm", "ликвидност пул", "liquidity pool", "smart contract", "смарт-контракт", "on-chain"], "skills": ["ecc:defi-amm-security"] },
+    { "id": "clickhouse", "name": "ClickHouse",                     "match": ["clickhouse", "кликхаус"], "skills": ["ecc:clickhouse-io"] },
+    { "id": "redis",      "name": "Redis",                          "match": ["redis", "редис"], "skills": ["ecc:redis-patterns"] },
+    { "id": "xapi",       "name": "X / Twitter API",                "match": ["twitter api", "x api", "твиттер api", "tweepy"], "skills": ["ecc:x-api"] },
+    { "id": "e2e",        "name": "E2E / browser QA",               "match": ["e2e", "end-to-end тест", "playwright", "браузерный тест"], "skills": ["ecc:e2e-testing", "ecc:browser-qa"] }
   ],
 
   "always": [

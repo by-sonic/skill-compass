@@ -259,7 +259,7 @@
 
   <section id="install">
     <div class="sec-head"><span class="num">// 04</span><h2>Установка</h2></div>
-    <p style="color:var(--muted); margin:-12px 0 22px; font-size:15px">Нужны Node.js и Claude Code. Установщик кладёт два файла и регистрирует один хук <code class="mono" style="color:var(--ink)">UserPromptSubmit</code>.</p>
+    <p style="color:var(--muted); margin:-12px 0 22px; font-size:15px">Нужны Node.js и Claude Code. Установщик кладёт два файла и регистрирует два хука — <code class="mono" style="color:var(--ink)">UserPromptSubmit</code> (промт + проект) и <code class="mono" style="color:var(--ink)">PostToolUse</code> (находки инструментов во время работы).</p>
 
     <div class="code" style="margin-bottom:14px">
       <button class="copy" data-copy="git clone https://github.com/by-sonic/skill-compass &amp;&amp; node skill-compass/install.js">Копировать</button>
@@ -270,11 +270,16 @@
 
     <p style="color:var(--muted); font-size:14px; margin:0 0 10px">…или вручную — добавь в <code class="mono" style="color:var(--ink)">~/.claude/settings.json</code>:</p>
     <div class="code">
-      <button class="copy" data-copy='"UserPromptSubmit": [{ "matcher": "", "hooks": [{ "type": "command", "command": "node \"~/.claude/skill-compass/compass.js\"" }] }]'>Копировать</button>
+      <button class="copy" data-copy='"UserPromptSubmit": [{ "matcher": "", "hooks": [{ "type": "command", "command": "node \"~/.claude/skill-compass/compass.js\"" }] }], "PostToolUse": [{ "matcher": "Bash|Grep|Glob|Read|Task", "hooks": [{ "type": "command", "command": "node \"~/.claude/skill-compass/compass.js\" --post" }] }]'>Копировать</button>
       <pre><span class="s">"UserPromptSubmit"</span>: [{
   <span class="s">"matcher"</span>: <span class="s">""</span>,
   <span class="s">"hooks"</span>: [{ <span class="s">"type"</span>: <span class="s">"command"</span>,
     <span class="s">"command"</span>: <span class="s">"node \"~/.claude/skill-compass/compass.js\""</span> }]
+}],
+<span class="s">"PostToolUse"</span>: [{
+  <span class="s">"matcher"</span>: <span class="s">"Bash|Grep|Glob|Read|Task"</span>,
+  <span class="s">"hooks"</span>: [{ <span class="s">"type"</span>: <span class="s">"command"</span>,
+    <span class="s">"command"</span>: <span class="s">"node \"~/.claude/skill-compass/compass.js\" --post"</span> }]
 }]</pre>
     </div>
 
