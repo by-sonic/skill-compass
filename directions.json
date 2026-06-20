@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "description": "skill-compass: maps project composition to recommended skills. Edit freely — add a stack or direction by appending an object. compass.js reads this at runtime.",
+
+  "_doc": {
+    "stacks": "Language/framework level. indicators = filenames (glob *) at depth<=2; optional 'contains' = substring that must appear in that file.",
+    "directions": "Cross-cutting concerns layered on top of stacks. deps = dependency names (matched in package.json/requirements/pyproject/Cargo.toml/go.mod text); paths = folder/file names present at depth<=2; ext = file extensions present at depth<=2. ANY match triggers the direction.",
+    "always": "Directions emitted for every project regardless of detection."
+  },
+
+  "stacks": [
+    { "id": "rust",       "name": "Rust",            "indicators": [{ "file": "Cargo.toml" }],                                   "skills": ["ecc:rust-patterns", "ecc:rust-testing"] },
+    { "id": "golang",     "name": "Go",              "indicators": [{ "file": "go.mod" }],                                       "skills": ["ecc:golang-patterns", "ecc:golang-testing"] },
+    { "id": "python",     "name": "Python",          "indicators": [{ "file": "pyproject.toml" }, { "file": "requirements.txt" }, { "file": "setup.py" }, { "file": "Pipfile" }], "skills": ["ecc:python-patterns", "ecc:python-testing"] },
+    { "id": "django",     "name": "Django",          "indicators": [{ "file": "manage.py" }, { "file": "requirements.txt", "contains": "django" }], "skills": ["ecc:django-patterns", "ecc:django-tdd", "ecc:django-security"] },
+    { "id": "typescript", "name": "TypeScript",      "indicators": [{ "file": "tsconfig.json" }, { "file": "package.json", "contains": "typescript" }], "skills": ["ecc:coding-standards", "ecc:tdd-workflow"] },
+    { "id": "nextjs",     "name": "Next.js",         "indicators": [{ "file": "next.config.*" }, { "file": "package.json", "contains": "\"next\":" }], "skills": ["ecc:frontend-patterns", "ecc:backend-patterns"] },
+    { "id": "react",      "name": "React",           "indicators": [{ "file": "package.json", "contains": "\"react\":" }],        "skills": ["ecc:frontend-patterns"] },
+    { "id": "vue",        "name": "Vue / Nuxt",      "indicators": [{ "file": "nuxt.config.*" }, { "file": "package.json", "contains": "\"vue\":" }], "skills": ["ecc:nuxt4-patterns", "ecc:frontend-patterns"] },
+    { "id": "java",       "name": "Java",            "indicators": [{ "file": "pom.xml" }, { "file": "build.gradle" }],          "skills": ["ecc:java-coding-standards", "ecc:tdd-workflow"] },
+    { "id": "springboot", "name": "Spring Boot",     "indicators": [{ "file": "pom.xml", "contains": "spring-boot" }, { "file": "build.gradle", "contains": "spring-boot" }], "skills": ["ecc:springboot-patterns", "ecc:springboot-tdd", "ecc:springboot-security"] },
+    { "id": "kotlin",     "name": "Kotlin",          "indicators": [{ "file": "build.gradle.kts" }],                             "skills": ["ecc:kotlin-patterns", "ecc:kotlin-testing", "ecc:kotlin-coroutines-flows"] },
+    { "id": "swift",      "name": "Swift / SwiftUI", "indicators": [{ "file": "Package.swift" }, { "file": "*.xcodeproj" }],     "skills": ["ecc:swiftui-patterns", "ecc:swift-concurrency-6-2"] },
+    { "id": "flutter",    "name": "Dart / Flutter",  "indicators": [{ "file": "pubspec.yaml" }],                                 "skills": ["ecc:dart-flutter-patterns"] },
+    { "id": "php-laravel","name": "PHP / Laravel",   "indicators": [{ "file": "artisan" }, { "file": "composer.json" }],         "skills": ["ecc:laravel-patterns", "ecc:laravel-tdd", "ecc:laravel-security"] },
+    { "id": "csharp",     "name": "C# / .NET",       "indicators": [{ "file": "*.csproj" }, { "file": "*.sln" }],                "skills": ["ecc:dotnet-patterns", "ecc:csharp-testing"] },
+    { "id": "cpp",        "name": "C / C++",         "indicators": [{ "file": "CMakeLists.txt" }, { "file": "Makefile" }],       "skills": ["ecc:cpp-coding-standards", "ecc:cpp-testing"] }
+  ],
+
+  "directions": [
+    {
+      "id": "ui",
+      "name": "UI / Frontend",
+      "deps": ["react", "vue", "next", "svelte", "@angular/core", "solid-js", "tailwindcss", "@mui/material"],
+      "paths": ["components", "src/components", "app", "pages", "styles"],
+      "ext": [".tsx", ".jsx", ".vue", ".svelte", ".css", ".scss"],
+      "skills": ["frontend-design:frontend-design", "ecc:make-interfaces-feel-better"]
+    },
+    {
+      "id": "api",
+      "name": "API / Backend",
+      "deps": ["express", "fastify", "@nestjs/core", "koa", "fastapi", "flask", "django", "axum", "actix-web", "gin-gonic"],
+      "paths": ["api", "app/api", "routes", "controllers", "handlers", "endpoints"],
+      "ext": [],
+      "skills": ["ecc:api-design", "ecc:backend-patterns"]
+    },
+    {
+      "id": "db",
+      "name": "Database / Migrations",
+      "deps": ["prisma", "@prisma/client", "drizzle-orm", "typeorm", "sequelize", "mongoose", "sqlalchemy", "alembic", "knex", "diesel", "sqlx", "gorm"],
+      "paths": ["migrations", "prisma", "db", "models", "schema"],
+      "ext": [".sql"],
+      "skills": ["ecc:database-migrations", "ecc:postgres-patterns"]
+    },
+    {
+      "id": "auth-pay",
+      "name": "Auth / Payments / PII",
+      "deps": ["next-auth", "@auth/core", "passport", "jsonwebtoken", "bcrypt", "stripe", "@stripe/stripe-js", "paddle", "djangorestframework-simplejwt", "authlib"],
+      "paths": ["auth", "payments", "billing"],
+      "ext": [],
+      "skills": ["ecc:security-review"]
+    },
+    {
+      "id": "llm",
+      "name": "LLM / Agents",
+      "deps": ["@anthropic-ai/sdk", "anthropic", "openai", "langchain", "@langchain/core", "llamaindex", "ollama", "ai"],
+      "paths": ["agents", "prompts"],
+      "ext": [],
+      "skills": ["claude-api", "ecc:agent-harness-construction"]
+    },
+    {
+      "id": "infra",
+      "name": "Infra / Deploy",
+      "deps": [],
+      "paths": ["Dockerfile", "docker-compose.yml", "compose.yml", "compose.yaml", "k8s", ".github/workflows", "terraform"],
+      "ext": [],
+      "skills": ["ecc:docker-patterns", "ecc:deployment-patterns"]
+    }
+  ],
+
+  "always": [
+    { "id": "verify", "name": "Verify before done", "skills": ["superpowers:verification-before-completion"] }
+  ]
+}

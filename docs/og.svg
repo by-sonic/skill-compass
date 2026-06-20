@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="glow" cx="78%" cy="42%" r="60%">
+      <stop offset="0%" stop-color="#0f2520"/>
+      <stop offset="100%" stop-color="#0A0D13"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect width="1200" height="630" fill="none" stroke="#233044" stroke-width="2"/>
+
+  <!-- compass -->
+  <g transform="translate(900,315)">
+    <circle r="210" fill="none" stroke="#233044" stroke-width="2"/>
+    <circle r="190" fill="none" stroke="#33415A" stroke-width="7" stroke-dasharray="1.5 13"/>
+    <circle r="150" fill="#0E131B" stroke="#233044" stroke-width="2"/>
+    <polygon points="0,-150 14,0 0,8 -14,0" fill="#FF5A4D"/>
+    <polygon points="0,150 14,0 0,-8 -14,0" fill="#54607A"/>
+    <circle r="12" fill="#141A24" stroke="#8C97AC" stroke-width="2"/>
+    <g font-family="monospace" font-size="20" font-weight="700" fill="#57E0C7" text-anchor="middle">
+      <text x="0" y="-168">UI</text>
+      <text x="162" y="-78">API</text>
+      <text x="162" y="92">DB</text>
+      <text x="0" y="196">AUTH</text>
+      <text x="-160" y="92">LLM</text>
+      <text x="-156" y="-78">INFRA</text>
+    </g>
+  </g>
+
+  <!-- text -->
+  <g transform="translate(90,250)" font-family="monospace">
+    <text x="0" y="0" font-size="22" letter-spacing="8" fill="#8C97AC">CLAUDE CODE HOOK</text>
+    <text x="-2" y="70" font-size="72" font-weight="700" fill="#EAEEF6">skill-compass</text>
+    <text x="0" y="138" font-size="30" font-weight="700" fill="#FF5A4D">Point your project at</text>
+    <text x="0" y="180" font-size="30" font-weight="700" fill="#FF5A4D">the right skills.</text>
+  </g>
+  <g transform="translate(88,470)" font-family="sans-serif">
+    <text x="0" y="0" font-size="23" fill="#8C97AC">Detects UI · API · DB · auth · LLM · infra —</text>
+    <text x="0" y="34" font-size="23" fill="#8C97AC">and routes the right skills before code is written.</text>
+  </g>
+</svg>

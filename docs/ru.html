@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>skill-compass — наводит проект на нужные скиллы Claude Code</title>
+<meta name="description" content="Хук для Claude Code: читает репозиторий, определяет из чего он состоит — UI, API, база, авторизация, LLM, инфра — и подсказывает Claude, какие скиллы подключить ещё до написания кода. Ноль зависимостей, один конфиг.">
+<meta name="keywords" content="claude code, хук claude code, скиллы, agent skills, UserPromptSubmit, определение стека, frontend-design, api-design, anthropic, инструменты разработки, монорепо">
+<meta name="author" content="skill-compass">
+<meta name="theme-color" content="#0A0D13">
+<link rel="canonical" href="https://sonic.github.io/skill-compass/ru.html">
+<link rel="alternate" hreflang="en" href="https://sonic.github.io/skill-compass/">
+<link rel="alternate" hreflang="ru" href="https://sonic.github.io/skill-compass/ru.html">
+<link rel="alternate" hreflang="x-default" href="https://sonic.github.io/skill-compass/">
+
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="skill-compass — наводит проект на нужные скиллы Claude Code">
+<meta property="og:description" content="Читает репозиторий, определяет UI / API / базу / авторизацию / LLM / инфру и подключает нужные скиллы до написания кода.">
+<meta property="og:url" content="https://sonic.github.io/skill-compass/ru.html">
+<meta property="og:image" content="https://sonic.github.io/skill-compass/og.svg">
+<meta property="og:site_name" content="skill-compass">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="skill-compass — наводит проект на нужные скиллы Claude Code">
+<meta name="twitter:description" content="Хук Claude Code: определяет стек и маршрутизирует нужные скиллы до написания кода.">
+<meta name="twitter:image" content="https://sonic.github.io/skill-compass/og.svg">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230A0D13' stroke='%23233044' stroke-width='2'/%3E%3Cpolygon points='16,5 19,16 16,16' fill='%23FF5A4D'/%3E%3Cpolygon points='16,27 13,16 16,16' fill='%238C97AC'/%3E%3C/svg%3E">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "skill-compass",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Windows, macOS, Linux",
+  "inLanguage": "ru",
+  "description": "Хук Claude Code (UserPromptSubmit), который определяет стек проекта и сквозные направления (UI, API, база данных, авторизация, LLM, инфра) и подсказывает скиллы до написания кода.",
+  "softwareRequirements": "Node.js, Claude Code",
+  "codeRepository": "https://github.com/sonic/skill-compass",
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "skill-compass contributors" }
+}
+</script>
+
+<style>
+  :root{
+    --night:#0A0D13; --surface:#141A24; --surface-2:#0E131B;
+    --line:#233044; --ink:#EAEEF6; --muted:#8C97AC;
+    --needle:#FF5A4D; --cardinal:#57E0C7; --tick:#33415A;
+    --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono","Cascadia Code","Consolas",monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--night); color:var(--ink);
+    font-family:var(--sans); line-height:1.6; overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(1200px 600px at 50% -10%, rgba(87,224,199,.06), transparent 60%);
+  }
+  a{color:var(--cardinal); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 24px}
+  .mono{font-family:var(--mono)}
+  .eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.28em; text-transform:uppercase;
+    color:var(--muted); display:inline-flex; align-items:center; gap:10px}
+  .eyebrow::before{content:""; width:28px; height:1px; background:var(--line)}
+  h1,h2,h3{font-family:var(--mono); font-weight:700; letter-spacing:-.01em; line-height:1.12}
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible{outline:2px solid var(--cardinal); outline-offset:3px; border-radius:3px}
+
+  header.nav{position:sticky; top:0; z-index:20; backdrop-filter:blur(10px);
+    background:rgba(10,13,19,.7); border-bottom:1px solid var(--line)}
+  .nav-in{display:flex; align-items:center; justify-content:space-between; height:60px}
+  .brand{display:flex; align-items:center; gap:11px; font-family:var(--mono); font-weight:700; letter-spacing:.02em}
+  .nav-links{display:flex; gap:24px; font-family:var(--mono); font-size:13px}
+  .nav-links a{color:var(--muted)}
+  .nav-links a:hover{color:var(--ink); text-decoration:none}
+  @media(max-width:640px){.nav-links{display:none}}
+
+  .hero{padding:64px 0 40px; display:grid; grid-template-columns:1.05fr .95fr; gap:48px; align-items:center}
+  @media(max-width:860px){.hero{grid-template-columns:1fr; padding:40px 0 16px; gap:28px}}
+  .hero h1{font-size:clamp(32px,5vw,54px); margin:18px 0 0}
+  .hero h1 .accent{color:var(--needle)}
+  .lead{color:var(--muted); font-size:clamp(16px,2.1vw,19px); max-width:38ch; margin:20px 0 0}
+  .cta-row{display:flex; gap:14px; margin-top:30px; flex-wrap:wrap}
+  .btn{font-family:var(--mono); font-size:14px; padding:13px 20px; border-radius:8px; border:1px solid var(--line);
+    background:var(--surface); color:var(--ink); cursor:pointer; display:inline-flex; gap:10px; align-items:center; transition:.15s}
+  .btn:hover{border-color:var(--cardinal); text-decoration:none; transform:translateY(-1px)}
+  .btn.primary{background:var(--needle); border-color:var(--needle); color:#1a0603; font-weight:700}
+  .btn.primary:hover{box-shadow:0 8px 30px rgba(255,90,77,.28)}
+
+  .compass-stage{display:flex; flex-direction:column; align-items:center; gap:18px}
+  .compass{position:relative; width:min(380px,84vw); aspect-ratio:1}
+  .compass svg{position:absolute; inset:0; width:100%; height:100%}
+  .needle{transform-origin:200px 200px; transition:transform .9s cubic-bezier(.2,.9,.2,1)}
+  .dir{position:absolute; inset:0; transform:rotate(var(--a)); pointer-events:none}
+  .dir button{
+    position:absolute; left:50%; top:12%; transform:translate(-50%,-50%) rotate(calc(-1*var(--a)));
+    pointer-events:auto;
+    width:46px; height:46px; border-radius:50%; border:1px solid var(--line); background:var(--surface-2);
+    color:var(--muted); font-family:var(--mono); font-size:10.5px; font-weight:700; cursor:pointer;
+    transition:border-color .18s,color .18s,box-shadow .18s,background .18s; display:grid; place-items:center; padding:0;
+  }
+  .dir button:hover, .dir.active button{border-color:var(--cardinal); color:var(--cardinal); background:#0c1a18;
+    box-shadow:0 0 0 4px rgba(87,224,199,.12)}
+  .readout{font-family:var(--mono); font-size:13px; text-align:center; min-height:48px;
+    border:1px solid var(--line); border-radius:10px; padding:12px 16px; background:var(--surface-2); width:min(380px,84vw)}
+  .readout .bearing{color:var(--needle); letter-spacing:.16em}
+  .readout .skills{color:var(--ink); display:block; margin-top:4px}
+  .readout .hint{color:var(--muted)}
+
+  section{padding:56px 0; border-top:1px solid var(--line)}
+  .sec-head{display:flex; align-items:baseline; gap:16px; margin-bottom:30px; flex-wrap:wrap}
+  .sec-head h2{font-size:clamp(22px,3vw,30px); margin:0}
+  .sec-head .num{font-family:var(--mono); color:var(--muted); font-size:13px; letter-spacing:.2em}
+
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+  @media(max-width:760px){.steps{grid-template-columns:1fr}}
+  .step{border:1px solid var(--line); border-radius:12px; padding:22px; background:var(--surface)}
+  .step .b{font-family:var(--mono); color:var(--needle); font-size:12px; letter-spacing:.2em}
+  .step h3{font-size:17px; margin:12px 0 8px}
+  .step p{color:var(--muted); font-size:14px; margin:0}
+
+  .tablecard{border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--surface)}
+  .scroll-x{overflow-x:auto}
+  table{border-collapse:collapse; width:100%; min-width:560px; font-size:14px}
+  th,td{text-align:left; padding:13px 18px; border-bottom:1px solid var(--line)}
+  th{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+  td:first-child{font-family:var(--mono); color:var(--cardinal); white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  td code{font-family:var(--mono); font-size:12.5px; color:var(--ink)}
+  .tag{font-family:var(--mono); font-size:11px; color:var(--muted)}
+
+  .code{position:relative; border:1px solid var(--line); border-radius:12px; background:var(--surface-2); margin:0}
+  .code pre{margin:0; padding:20px; overflow-x:auto; font-family:var(--mono); font-size:13.5px; line-height:1.7}
+  .code .cmnt{color:var(--muted)} .code .k{color:var(--cardinal)} .code .s{color:#E2B765}
+  .copy{position:absolute; top:10px; right:10px; font-family:var(--mono); font-size:11px; padding:6px 11px;
+    border:1px solid var(--line); border-radius:7px; background:var(--surface); color:var(--muted); cursor:pointer}
+  .copy:hover{color:var(--ink); border-color:var(--cardinal)}
+  .copy.done{color:var(--cardinal); border-color:var(--cardinal)}
+
+  details{border:1px solid var(--line); border-radius:10px; padding:0 18px; background:var(--surface); margin-bottom:12px}
+  summary{cursor:pointer; padding:16px 0; font-family:var(--mono); font-size:15px; list-style:none; display:flex; justify-content:space-between; gap:12px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+"; color:var(--needle); font-weight:700}
+  details[open] summary::after{content:"–"}
+  details p{color:var(--muted); font-size:14px; margin:0 0 18px}
+
+  footer{border-top:1px solid var(--line); padding:36px 0 56px; color:var(--muted); font-family:var(--mono); font-size:13px}
+  .footrow{display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap}
+
+  @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important} .needle{transition:none!important; animation:none!important}}
+  .needle{animation:sweep 1.6s ease-out 1}
+  @keyframes sweep{0%{transform:rotate(-150deg)}55%{transform:rotate(40deg)}100%{transform:rotate(0deg)}}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <span class="brand">
+      <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="#233044" stroke-width="2"/><polygon points="16,5 19.5,16 16,16" fill="#FF5A4D"/><polygon points="16,27 12.5,16 16,16" fill="#8C97AC"/></svg>
+      skill-compass
+    </span>
+    <nav class="nav-links" aria-label="Основная навигация">
+      <a href="#how">Как работает</a>
+      <a href="#directions">Направления</a>
+      <a href="#install">Установка</a>
+      <a href="https://github.com/sonic/skill-compass">GitHub</a>
+      <a href="index.html" aria-label="English version">EN</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="hero">
+    <div>
+      <span class="eyebrow">Хук Claude Code</span>
+      <h1>Наводит проект на <span class="accent">нужные скиллы</span>.</h1>
+      <p class="lead">skill-compass читает репозиторий, понимает из чего он собран, и подсказывает Claude, какие скиллы подключить — до того, как написана первая строка.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="#install">Установка одной командой</a>
+        <a class="btn" href="https://github.com/sonic/skill-compass">Открыть на GitHub →</a>
+      </div>
+    </div>
+
+    <div class="compass-stage">
+      <div class="compass" role="group" aria-label="Интерактивный компас направлений проекта">
+        <svg viewBox="0 0 400 400" aria-hidden="true">
+          <circle cx="200" cy="200" r="192" fill="none" stroke="#233044" stroke-width="1"/>
+          <circle cx="200" cy="200" r="176" fill="none" stroke="#33415A" stroke-width="6" stroke-dasharray="1 11"/>
+          <circle cx="200" cy="200" r="150" fill="none" stroke="#233044" stroke-width="1"/>
+          <circle cx="200" cy="200" r="120" fill="#0E131B" stroke="#233044" stroke-width="1"/>
+          <g class="needle" id="needle">
+            <polygon points="200,70 210,200 200,205 190,200" fill="#FF5A4D"/>
+            <polygon points="200,330 210,200 200,195 190,200" fill="#54607A"/>
+          </g>
+          <circle cx="200" cy="200" r="9" fill="#141A24" stroke="#8C97AC" stroke-width="1.5"/>
+        </svg>
+        <div class="dir" style="--a:0deg"><button data-b="000" data-name="UI / Фронтенд" data-skills="frontend-design · make-interfaces-feel-better" aria-label="Направление UI, азимут 000">UI</button></div>
+        <div class="dir" style="--a:60deg"><button data-b="060" data-name="API / Бэкенд" data-skills="api-design · backend-patterns" aria-label="Направление API, азимут 060">API</button></div>
+        <div class="dir" style="--a:120deg"><button data-b="120" data-name="База / Миграции" data-skills="database-migrations · postgres-patterns" aria-label="Направление БД, азимут 120">БД</button></div>
+        <div class="dir" style="--a:180deg"><button data-b="180" data-name="Авторизация / Платежи / PII" data-skills="security-review" aria-label="Направление авторизации, азимут 180">AUTH</button></div>
+        <div class="dir" style="--a:240deg"><button data-b="240" data-name="LLM / Агенты" data-skills="claude-api · agent-harness-construction" aria-label="Направление LLM, азимут 240">LLM</button></div>
+        <div class="dir" style="--a:300deg"><button data-b="300" data-name="Инфра / Деплой" data-skills="docker-patterns · deployment-patterns" aria-label="Направление инфры, азимут 300">INFRA</button></div>
+      </div>
+      <div class="readout" id="readout" aria-live="polite">
+        <span class="hint">Наведи на азимут — стрелка встанет и покажет скиллы.</span>
+      </div>
+    </div>
+  </div>
+
+  <section id="why" style="border-top:none">
+    <div class="sec-head"><span class="num">// 01</span><h2>200+ скиллов. Какой нужен прямо сейчас?</h2></div>
+    <p style="color:var(--muted); max-width:64ch; font-size:16px">
+      В загруженном Claude Code огромная библиотека скиллов — дизайн, API, базы, безопасность, все языковые стеки.
+      Нужный под задачу там есть. Проблема в том, чтобы вовремя о нём вспомнить. skill-compass убирает «вспомнить»:
+      на каждом промте он осматривает проект и отдаёт Claude короткий точный список скиллов, подходящих под то,
+      что перед ним.
+    </p>
+  </section>
+
+  <section id="how">
+    <div class="sec-head"><span class="num">// 02</span><h2>Сканирует, сопоставляет, подмешивает</h2></div>
+    <div class="steps">
+      <div class="step"><span class="b">SCAN</span><h3>Читает репозиторий</h3>
+        <p>На каждом промте читает корень проекта: манифесты зависимостей, папки, расширения файлов. Ограниченная глубина, миллисекунды, кэш на сессию.</p></div>
+      <div class="step"><span class="b">MATCH</span><h3>Берёт азимут</h3>
+        <p>Сопоставляет найденное со стеками (Rust, Next.js, Django…) и сквозными направлениями (UI, API, БД, auth, LLM, инфра) из одного редактируемого конфига.</p></div>
+      <div class="step"><span class="b">INJECT</span><h3>Маршрутизирует скиллы</h3>
+        <p>Добавляет в промт компактную заметку с именами скиллов. Показывает раз на проект за сессию; повторно — только если состав проекта изменился.</p></div>
+    </div>
+  </section>
+
+  <section id="directions">
+    <div class="sec-head"><span class="num">// 03</span><h2>Азимуты, которые он читает</h2></div>
+    <div class="tablecard scroll-x">
+      <table>
+        <thead><tr><th>Азимут</th><th>Триггеры</th><th>Какие скиллы подключает</th></tr></thead>
+        <tbody>
+          <tr><td>UI · 000°</td><td class="tag">react, vue, next, .tsx, components/</td><td><code>frontend-design</code>, <code>make-interfaces-feel-better</code></td></tr>
+          <tr><td>API · 060°</td><td class="tag">express, fastapi, app/api/, routes/</td><td><code>api-design</code>, <code>backend-patterns</code></td></tr>
+          <tr><td>БД · 120°</td><td class="tag">prisma, drizzle, sqlalchemy, *.sql</td><td><code>database-migrations</code>, <code>postgres-patterns</code></td></tr>
+          <tr><td>AUTH · 180°</td><td class="tag">next-auth, stripe, jwt, auth/</td><td><code>security-review</code></td></tr>
+          <tr><td>LLM · 240°</td><td class="tag">anthropic, openai, langchain</td><td><code>claude-api</code>, <code>agent-harness-construction</code></td></tr>
+          <tr><td>INFRA · 300°</td><td class="tag">Dockerfile, compose.yml, k8s/</td><td><code>docker-patterns</code>, <code>deployment-patterns</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:var(--muted); font-size:14px; margin-top:16px">
+      Плюс 16 языковых стеков (Rust, Go, Python, TypeScript, Java, Kotlin, Swift, Dart, PHP, C#, C/C++ …).
+      Каждая строка живёт в <code class="mono" style="color:var(--ink)">directions.json</code> — новый азимут добавляется одним объектом.
+    </p>
+  </section>
+
+  <section id="install">
+    <div class="sec-head"><span class="num">// 04</span><h2>Установка</h2></div>
+    <p style="color:var(--muted); margin:-12px 0 22px; font-size:15px">Нужны Node.js и Claude Code. Установщик кладёт два файла и регистрирует один хук <code class="mono" style="color:var(--ink)">UserPromptSubmit</code>.</p>
+
+    <div class="code" style="margin-bottom:14px">
+      <button class="copy" data-copy="git clone https://github.com/sonic/skill-compass &amp;&amp; node skill-compass/install.js">Копировать</button>
+      <pre><span class="cmnt"># склонировать и запустить установщик (macOS / Linux / Windows)</span>
+<span class="k">git</span> clone https://github.com/sonic/skill-compass
+<span class="k">node</span> skill-compass/install.js</pre>
+    </div>
+
+    <p style="color:var(--muted); font-size:14px; margin:0 0 10px">…или вручную — добавь в <code class="mono" style="color:var(--ink)">~/.claude/settings.json</code>:</p>
+    <div class="code">
+      <button class="copy" data-copy='"UserPromptSubmit": [{ "matcher": "", "hooks": [{ "type": "command", "command": "node \"~/.claude/skill-compass/compass.js\"" }] }]'>Копировать</button>
+      <pre><span class="s">"UserPromptSubmit"</span>: [{
+  <span class="s">"matcher"</span>: <span class="s">""</span>,
+  <span class="s">"hooks"</span>: [{ <span class="s">"type"</span>: <span class="s">"command"</span>,
+    <span class="s">"command"</span>: <span class="s">"node \"~/.claude/skill-compass/compass.js\""</span> }]
+}]</pre>
+    </div>
+
+    <p style="color:var(--muted); font-size:14px; margin-top:18px">
+      Выключить в любой момент — <code class="mono" style="color:var(--ink)">SKILL_COMPASS=off</code>. Проверить детекцию —
+      <code class="mono" style="color:var(--ink)">node compass.js --self-test</code>.
+    </p>
+  </section>
+
+  <section id="faq">
+    <div class="sec-head"><span class="num">// 05</span><h2>Вопросы</h2></div>
+
+    <details><summary>Это замедляет каждый промт?<span></span></summary>
+      <p>Нет. Он читает корень проекта на один уровень вглубь и кэширует результат на сессию. Никаких глубоких обходов дерева, сети или парсинга сверх манифестов зависимостей — единицы миллисекунд.</p></details>
+
+    <details><summary>Он будет спамить одной и той же заметкой каждое сообщение?<span></span></summary>
+      <p>Нет. Направления показываются раз на проект за сессию и повторно — только когда набор изменился, например когда ты добавил Dockerfile и появился азимут инфры.</p></details>
+
+    <details><summary>Я работаю из папки с кучей разных проектов. Что будет?<span></span></summary>
+      <p>Он промолчит. У настоящего проекта есть манифест в корне; у контейнера проектов — нет. Нет манифеста в корне → это не проект, и компас ничего не говорит, а не угадывает.</p></details>
+
+    <details><summary>Он привязан к конкретному маркетплейсу скиллов?<span></span></summary>
+      <p>Дефолтный конфиг указывает на распространённые скиллы Claude Code, но любой маппинг — это просто строка в <code class="mono" style="color:var(--ink)">directions.json</code>. Наведи азимут на любое имя скилла, который у тебя установлен.</p></details>
+
+    <details><summary>Что он куда-нибудь отправляет?<span></span></summary>
+      <p>Ничего. Работает локально, читает файлы в твоём проекте и пишет заметку в твой же промт. Ноль зависимостей, ноль телеметрии, ~200 строк Node, которые читаются за один присест.</p></details>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap footrow">
+    <span>skill-compass · MIT · сделано для Claude Code</span>
+    <span><a href="https://github.com/sonic/skill-compass">github.com/sonic/skill-compass</a></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var needle = document.getElementById('needle');
+  var readout = document.getElementById('readout');
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var locked = false;
+  function point(btn){
+    var b = btn.dataset.b, name = btn.dataset.name, skills = btn.dataset.skills;
+    if(!reduce) needle.style.transform = 'rotate(' + parseInt(b,10) + 'deg)';
+    readout.innerHTML = '<span class="bearing">' + b + '° · ' + name + '</span>' +
+                        '<span class="skills">' + skills + '</span>';
+    document.querySelectorAll('.dir').forEach(function(d){ d.classList.remove('active'); });
+    btn.parentNode.classList.add('active');
+  }
+  document.querySelectorAll('.dir button').forEach(function(btn){
+    btn.addEventListener('mouseenter', function(){ if(!locked) point(btn); });
+    btn.addEventListener('focus', function(){ if(!locked) point(btn); });
+    btn.addEventListener('click', function(){ locked = !locked; point(btn); });
+  });
+  document.querySelectorAll('.copy').forEach(function(b){
+    b.addEventListener('click', function(){
+      navigator.clipboard && navigator.clipboard.writeText(b.dataset.copy).then(function(){
+        var t = b.textContent; b.textContent = 'Скопировано'; b.classList.add('done');
+        setTimeout(function(){ b.textContent = t; b.classList.remove('done'); }, 1400);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
