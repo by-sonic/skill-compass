@@ -123,7 +123,7 @@ function emit(text, eventName = 'UserPromptSubmit') {
 }
 
 // PostToolUse: flatten tool name + args + result into one searchable string so keyword
-// routing can fire on what the AI just discovered (e.g. a Glob/Grep/Read surfacing xray).
+// routing can fire on what the AI just discovered (e.g. a Glob/Grep/Read surfacing a clickhouse migration).
 function toolText(input) {
   const parts = [];
   if (input.tool_name) parts.push(String(input.tool_name));
@@ -197,20 +197,20 @@ function selfTest() {
   check('junk drawer: render empty when no prompt keyword', render(dtmp) === '');
 
   // prompt-driven keyword routing (junk-drawer Desktop case)
-  check('keyword: sonicdpi from prompt', detectKeywords('найди папку SonicDPI на столе и почини конфиг').some(k => k.id === 'sonicdpi'));
-  check('keyword: xray from prompt', detectKeywords('зайди в папку xray и проверь vless').some(k => k.id === 'xray'));
+  check('keyword: seo from prompt', detectKeywords('почини sitemap и robots.txt для SEO').some(k => k.id === 'seo'));
+  check('keyword: clickhouse from prompt', detectKeywords('зайди в проект и проверь clickhouse схему').some(k => k.id === 'clickhouse'));
   check('keyword: empty prompt -> none', detectKeywords('').length === 0);
   check('keyword: no false-positive substring (redis in redistribute)', !keywordHit('redis', 'redistribute the load'));
   check('keyword: cyrillic word boundary (сео)', keywordHit('сео', 'нужно сео для лендинга'));
-  check('keyword: junk-drawer fires when keyword matches', render(dtmp, detectKeywords('почини sonicdpi')) !== '');
-  check('keyword: junk-drawer hides directions (no project root)', !/UI \/ Frontend|Database|Infra/.test(render(dtmp, detectKeywords('почини sonicdpi'))));
-  check('keyword: signature changes with keywords', signature(dtmp) !== signature(dtmp, detectKeywords('почини sonicdpi')));
+  check('keyword: junk-drawer fires when keyword matches', render(dtmp, detectKeywords('почини redis')) !== '');
+  check('keyword: junk-drawer hides directions (no project root)', !/UI \/ Frontend|Database|Infra/.test(render(dtmp, detectKeywords('почини redis'))));
+  check('keyword: signature changes with keywords', signature(dtmp) !== signature(dtmp, detectKeywords('почини redis')));
 
   // PostToolUse: keyword routing off the tool result the AI just got
-  const globResp = { tool_name: 'Glob', tool_input: { pattern: '**/*xray*' }, tool_response: { type: 'text', text: 'C:/Users/Sonic/Desktop/RoseVPN/xray/config.json' } };
-  check('post: xray from tool_response path', detectKeywords(toolText(globResp)).some(k => k.id === 'xray'));
-  const bashResp = { tool_name: 'Bash', tool_input: { command: 'grep -ri windivert .' }, tool_response: 'src/windivert.rs: hooked' };
-  check('post: sonicdpi from bash result (string response)', detectKeywords(toolText(bashResp)).some(k => k.id === 'sonicdpi'));
+  const globResp = { tool_name: 'Glob', tool_input: { pattern: '**/*clickhouse*' }, tool_response: { type: 'text', text: 'C:/Users/dev/project/clickhouse/schema.sql' } };
+  check('post: clickhouse from tool_response path', detectKeywords(toolText(globResp)).some(k => k.id === 'clickhouse'));
+  const bashResp = { tool_name: 'Bash', tool_input: { command: 'grep -ri redis .' }, tool_response: 'src/cache.rs: redis client init' };
+  check('post: redis from bash result (string response)', detectKeywords(toolText(bashResp)).some(k => k.id === 'redis'));
   check('post: no keyword -> empty text', detectKeywords(toolText({ tool_name: 'Read', tool_input: { file_path: 'a.txt' }, tool_response: { type: 'text', text: 'hello world' } })).length === 0);
   check('post: toolText caps at 50k', toolText({ tool_response: 'x'.repeat(60000) }).length === 50000);
 
