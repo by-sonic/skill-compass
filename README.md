@@ -1,3 +1,10 @@
+<!-- SUPPORT-START -->
+<p align="center">
+  <b>💛 Support the project</b> · <b>USDT</b> (Tether) on <b>TRC20</b>:<br/>
+  <code>TEHHyPSeZ7t5vfVJmjtEBkqJdpfcrm1wqg</code>
+</p>
+<!-- SUPPORT-END -->
+
 <!-- ROSEVPN-BANNER-START -->
 <p align="center">
   <a href="https://t.me/rosevpnru_bot">
